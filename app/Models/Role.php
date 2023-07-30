@@ -15,4 +15,9 @@ class Role extends Model
     protected $primaryKey = 'uid';
     protected $keyType = 'string';
     protected $icrementing = false;
+
+    public function permissions()
+    {
+        return $this->belongsToMany(Permission::class, 'permissions_has_roles');
+    }
 }

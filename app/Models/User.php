@@ -7,6 +7,7 @@ use App\Traits\UuidTrait;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
@@ -51,4 +52,19 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'roles_has_users');
+    }
+
+    public function permissions()
+    {
+        return $this->roles()->with('permissions')->first()->permissions->pluck('name');
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        return $this->permissions()->contains($permission);
+    }
 }

@@ -11,7 +11,7 @@ class Permission extends Model
     use HasFactory;
     use UuidTrait;
 
-    protected $table = 'permission';
+    protected $table = 'permissions';
     protected $primaryKey = 'uid';
     protected $keyType = 'string';
     protected $icrementing = false;
