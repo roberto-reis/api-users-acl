@@ -12,11 +12,45 @@ use App\Http\Requests\RegisterRequest;
 
 class AuthController extends Controller
 {
+    public function register(RegisterRequest $request, RegisterAction $registerAction): JsonResponse
+    {
+        try {
+            $user = $registerAction->execute($request->validated());
+            return response_api('Dados cadastrados com sucesso', $user, 201);
+
+        } catch (\Exception $e) {
+            send_log('Erro ao cadastrar usuário', [], 'error', $e);
+            return response_api(
+                'Erro ao cadastrar usuário',
+                [],
+                $e->getCode()
+            );
+        }
+    }
 
     public function login(LoginRequest $request, LoginAction $loginAction): JsonResponse
     {
         $user = $loginAction->execute($request->validated());
         return response_api('Dados retornados com sucesso', $user, 200);
+    }
+
+    public function me(Request $request): JsonResponse
+    {
+        
+        try {
+            $user = $request->user();
+            $user->loadMissing('roles', 'roles.permissions');
+
+            return response_api('Dados retornados com sucesso', $user->toArray(), 200);
+
+        } catch (\Exception $e) {
+            send_log('Erro ao logar usuário', [], 'error', $e);
+            return response_api(
+                'Erro ao logar usuário',
+                [],
+                $e->getCode() == 0 ? 500 : $e->getCode()
+            );
+        }
     }
 
     public function logout(): JsonResponse
@@ -30,9 +64,13 @@ class AuthController extends Controller
             return response_api(
                 'Erro ao deslogar usuário',
                 [],
-                $e->getCode() == 0 ? 500 : $e->getCode()
+                $e->getCode()
             );
         }
     }
 
+    // TODO: Faltar Implementar Update User
+    // TODO: Faltar Implementar Delete User
+    // TODO: Faltar Implementar Forgot Password
+    // TODO: Faltar Implementar Reset Password
 }

@@ -18,11 +18,15 @@ if (!function_exists('send_log')) {
 }
 
 if (!function_exists('response_api')) {
-    function response_api(string $mensagem, array $data = [], int $statusCode = 200): JsonResponse {
-        return response()->json([
-            'message' => $mensagem,
-            'data' => $data
-        ], $statusCode);
+    function response_api(string $message, array $data = [], int $statusCode = 200, $error = null): JsonResponse {
+        $response = [];
+
+        if($error) $response['error'] = $error;
+
+        $response['message'] = $message;
+        $response['data'] = $data;
+
+        return response()->json($response, $statusCode == 0 ? 500 : $statusCode);
     }
 }
 
