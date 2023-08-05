@@ -6,9 +6,10 @@ namespace App\Models;
 use App\Traits\UuidTrait;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
@@ -43,6 +44,8 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $appends = ['permissions'];
+
     /**
      * The attributes that should be cast.
      *
@@ -55,16 +58,25 @@ class User extends Authenticatable
 
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'roles_has_users');
+        return $this->belongsToMany(Role::class, 'roles_has_users', 'user_uid', 'role_uid');
     }
 
-    public function permissions()
+    public function permissions(): Attribute
     {
-        return $this->roles()->with('permissions')->first()->permissions->pluck('name');
+        return new Attribute(
+            get: fn () => $this->getPermissions(),
+        );
+    }
+
+    private function getPermissions()
+    {
+        return $this->roles->flatMap(function($role) {
+            return $role->permissions()->pluck('name')->unique();
+        });
     }
 
     public function hasPermission(string $permission): bool
     {
-        return $this->permissions()->contains($permission);
+        return $this->getPermissions()->contains($permission);
     }
 }
