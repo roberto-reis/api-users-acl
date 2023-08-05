@@ -5,7 +5,9 @@ namespace App\Exceptions;
 use Throwable;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -31,7 +33,13 @@ class Handler extends ExceptionHandler
 
         $this->renderable(function (NotFoundHttpException $e, Request $request) {
             if ($request->is('api/*')) {
-                return response_api(error: class_basename($e), message: $e->getMessage(), statusCode: 404);
+                return response_api(error: class_basename($e), message: $e->getMessage(), statusCode: Response::HTTP_NOT_FOUND);
+            }
+        });
+
+        $this->renderable(function (AccessDeniedHttpException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response_api(error: class_basename($e), message: $e->getMessage(), statusCode: Response::HTTP_FORBIDDEN);
             }
         });
     }
