@@ -36,10 +36,11 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        
+        $this->authorize('view-user-configuration');
         try {
             $user = $request->user();
-            $user->loadMissing('roles', 'roles.permissions');
+
+            $user->loadMissing('roles');
 
             return response_api('Dados retornados com sucesso', $user->toArray(), 200);
 
